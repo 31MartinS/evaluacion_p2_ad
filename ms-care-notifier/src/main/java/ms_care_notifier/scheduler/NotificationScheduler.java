@@ -13,7 +13,8 @@ public class NotificationScheduler {
 
     private final NotificationService service;
 
-    @Scheduled(cron = "0 */30 * * * *")
+    //@Scheduled(cron = "0 */30 * * * *")
+    @Scheduled(fixedRate = 10000)
     public void enviarAlertasAgrupadas() {
         log.info("⏰ Enviando notificaciones agrupadas");
         service.processQueuedNotifications();

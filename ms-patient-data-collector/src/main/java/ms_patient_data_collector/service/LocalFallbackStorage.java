@@ -15,7 +15,9 @@ public class LocalFallbackStorage {
     private final Queue<VitalSignEvent> pending = new ConcurrentLinkedQueue<>();
 
     public void store(VitalSignEvent event) {
-        event.setEventId("EVT-" + UUID.randomUUID());
+        if (event.getEventId() == null || event.getEventId().isBlank()) {
+            event.setEventId("EVT-" + UUID.randomUUID());
+        }
         pending.add(event);
     }
 

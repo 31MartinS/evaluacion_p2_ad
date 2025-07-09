@@ -1,6 +1,6 @@
 # ms-patient-data-collector/src/main/resources/application.yml
 server:
-  port: 8085
+  port: 0
 
 spring:
   application:

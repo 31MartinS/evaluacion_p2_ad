@@ -1,10 +1,10 @@
-package ms_care_notifier;
+package ec.edu.espe.ms_api_gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MsCareNotifierApplicationTests {
+class MsApiGatewayApplicationTests {
 
 	@Test
 	void contextLoads() {

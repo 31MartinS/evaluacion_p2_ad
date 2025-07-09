@@ -10,7 +10,9 @@ import ms_health_analyzer.config.RabbitMQConfig;
 import ms_health_analyzer.dto.CriticalAlertEvent;
 import ms_health_analyzer.dto.VitalSignEvent;
 import ms_health_analyzer.entity.MedicalAlert;
+import ms_health_analyzer.entity.VitalSign;
 import ms_health_analyzer.repository.MedicalAlertRepository;
+import ms_health_analyzer.repository.VitalSignRepository;
 import ms_health_analyzer.service.EventPublisher;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,9 @@ public class VitalSignListener {
     @Autowired
     private MedicalAlertRepository alertRepository;
 
+    @Autowired
+    private VitalSignRepository vitalSignRepository;
+
     private final Validator validator;
 
     public VitalSignListener() {
@@ -53,6 +58,13 @@ public class VitalSignListener {
             }
 
             log.info("📥 Recibido signo: {}", event);
+
+            VitalSign vital = new VitalSign();
+            vital.setDeviceId(event.getDeviceId());
+            vital.setType(event.getType());
+            vital.setValue(event.getValue());
+            vital.setTimestamp(event.getTimestamp());
+            vitalSignRepository.save(vital);
 
             double value = event.getValue();
             String type = event.getType().toLowerCase();

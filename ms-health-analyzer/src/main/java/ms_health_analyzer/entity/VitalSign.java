@@ -22,7 +22,7 @@ public class VitalSign {
     @NotBlank
     private String type;
 
-    @Positive
+    //@Positive(message = "El valor debe ser mayor que 0, excepto para alertas como BatteryLow")
     private double value;
 
     @NotNull

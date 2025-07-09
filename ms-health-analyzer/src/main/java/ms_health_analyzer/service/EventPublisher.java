@@ -15,6 +15,7 @@ public class EventPublisher {
 
     private final AmqpTemplate amqpTemplate;
     private final ObjectMapper objectMapper;
+    private final FallbackStorage fallback;
 
     public void enviarReporte(DailyReportGenerated evento) {
         try {
@@ -40,9 +41,10 @@ public class EventPublisher {
         try {
             String json = objectMapper.writeValueAsString(event);
             amqpTemplate.convertAndSend(queue, json);
-            log.info("✅ Evento publicado en {}: {}", queue, json);
+            log.info("✅ Publicado en {}: {}", queue, json);
         } catch (Exception e) {
-            log.error("❌ Error al publicar en {}: {}", queue, e.getMessage());
+            log.error("❌ Falla en RabbitMQ, encolando evento: {}", e.getMessage());
+            fallback.store(event);
         }
     }
 

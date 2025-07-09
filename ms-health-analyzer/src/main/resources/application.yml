@@ -1,5 +1,5 @@
 server:
-  port: 8086
+  port: 0
 
 spring:
   application:
@@ -33,6 +33,16 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.value}
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
 
 logging:
   level:

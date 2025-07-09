@@ -22,6 +22,11 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue vitalAlertQueue() {
+        return new Queue("vital.alert", true);
+    }
+
+    @Bean
     public Queue dailyReportQueue() {
         return new Queue("daily.report.generated", true);
     }

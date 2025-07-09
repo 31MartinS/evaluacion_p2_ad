@@ -20,38 +20,79 @@ public class VitalSignService {
     private EventPublisher publisher;
 
     public void saveAndPublish(VitalSign vitalSign) {
-        // ✅ Validar rango del valor (genérico)
-        double value = vitalSign.getValue();
-        if (value < 10 || value > 300) {
-            throw new IllegalArgumentException("⚠️ Valor del signo vital fuera de rango aceptable (10-300)");
-        }
+        validateStructure(vitalSign);
 
-        // ✅ Validar si ya existe un registro igual (repetido)
-        boolean exists = repository.existsByDeviceIdAndTypeAndValueAndTimestamp(
+        /*boolean exists = repository.existsByDeviceIdAndTypeAndValueAndTimestamp(
                 vitalSign.getDeviceId(),
                 vitalSign.getType(),
                 vitalSign.getValue(),
                 vitalSign.getTimestamp()
         );
-        if (exists) {
-            throw new IllegalArgumentException("⚠️ Signo vital duplicado: ya fue registrado anteriormente");
-        }
 
-        // Guardar en base
+        if (exists) {
+            throw new IllegalArgumentException("⚠️ Signo vital duplicado");
+        }*/
+
         VitalSign saved = repository.save(vitalSign);
 
-        // Crear evento
-        VitalSignEvent event = new VitalSignEvent();
-        event.setEventId("EVT-" + UUID.randomUUID());
-        event.setDeviceId(saved.getDeviceId());
-        event.setType(saved.getType());
-        event.setValue(saved.getValue());
-        event.setTimestamp(Instant.now());
+        VitalSignEvent event = new VitalSignEvent(
+                "EVT-" + UUID.randomUUID(),
+                saved.getDeviceId(),
+                saved.getType(),
+                saved.getValue(),
+                saved.getTimestamp()
+        );
 
         publisher.publish(event);
     }
 
     public List<VitalSign> getByDeviceId(String deviceId) {
         return repository.findByDeviceId(deviceId);
+    }
+
+    /**
+     * Solo validaciones estructurales para permitir alertas tipo BatteryLow, etc.
+     */
+    public void validateStructure(VitalSign vitalSign) {
+        if (vitalSign.getDeviceId() == null || vitalSign.getDeviceId().isBlank()) {
+            throw new IllegalArgumentException("❌ El campo 'deviceId' es obligatorio");
+        }
+
+        if (vitalSign.getType() == null || vitalSign.getType().isBlank()) {
+            throw new IllegalArgumentException("❌ El campo 'type' es obligatorio");
+        }
+
+        if (vitalSign.getTimestamp() == null) {
+            throw new IllegalArgumentException("❌ El campo 'timestamp' es obligatorio");
+        }
+
+        // Solo validar value si el tipo lo necesita
+        String type = vitalSign.getType().toLowerCase();
+
+        if (type.equals("heart-rate") || type.equals("oxygen-saturation")
+                || type.equals("blood-pressure-systolic") || type.equals("blood-pressure-diastolic")) {
+
+            double value = vitalSign.getValue();
+            switch (type) {
+                case "heart-rate":
+                    //if (value < 30 || value > 400)
+                        //throw new IllegalArgumentException("⚠️ Frecuencia cardíaca fuera de rango (30-200)");
+                    if (value <= 0)
+                        throw new IllegalArgumentException("⚠️ Frecuencia cardíaca debe ser mayor que cero");
+                    break;
+                case "oxygen-saturation":
+                    if (value < 70 || value > 100)
+                        throw new IllegalArgumentException("⚠️ Saturación de oxígeno fuera de rango (70-100)");
+                    break;
+                case "blood-pressure-systolic":
+                    if (value < 80 || value > 250)
+                        throw new IllegalArgumentException("⚠️ Presión sistólica fuera de rango (80-250)");
+                    break;
+                case "blood-pressure-diastolic":
+                    if (value < 40 || value > 150)
+                        throw new IllegalArgumentException("⚠️ Presión diastólica fuera de rango (40-150)");
+                    break;
+            }
+        }
     }
 }
