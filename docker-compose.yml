@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # 🐓 Nodo CockroachDB - Quito
+  crdb-quito:
+    image: cockroachdb/cockroach:latest
+    container_name: crdb-quito
+    hostname: crdb-quito
+    command: start --insecure --join=crdb-quito,crdb-cuenca,crdb-guayaquil --advertise-addr=crdb-quito --http-addr=0.0.0.0:8080 --listen-addr=0.0.0.0:26257 --locality=region=sierra
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+    volumes:
+      - crdb_quito:/cockroach/cockroach-data
+
+  # 🐓 Nodo CockroachDB - Cuenca
+  crdb-cuenca:
+    image: cockroachdb/cockroach:latest
+    container_name: crdb-cuenca
+    hostname: crdb-cuenca
+    command: start --insecure --join=crdb-quito,crdb-cuenca,crdb-guayaquil --advertise-addr=crdb-cuenca --http-addr=0.0.0.0:8080 --listen-addr=0.0.0.0:26257 --locality=region=sur
+    ports:
+      - "26258:26257"
+      - "8081:8080"
+    volumes:
+      - crdb_cuenca:/cockroach/cockroach-data
+
+  # 🐓 Nodo CockroachDB - Guayaquil
+  crdb-guayaquil:
+    image: cockroachdb/cockroach:latest
+    container_name: crdb-guayaquil
+    hostname: crdb-guayaquil
+    command: start --insecure --join=crdb-quito,crdb-cuenca,crdb-guayaquil --advertise-addr=crdb-guayaquil --http-addr=0.0.0.0:8080 --listen-addr=0.0.0.0:26257 --locality=region=costa
+    ports:
+      - "26259:26257"
+      - "8082:8080"
+    volumes:
+      - crdb_guayaquil:/cockroach/cockroach-data
+
+  # 🐰 RabbitMQ con management plugin
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"     # Puerto de comunicación para microservicios
+      - "15672:15672"   # Interfaz web de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  crdb_quito:
+  crdb_cuenca:
+  crdb_guayaquil:
+  rabbitmq_data:
